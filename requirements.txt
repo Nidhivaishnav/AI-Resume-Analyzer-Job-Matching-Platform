@@ -1,7 +1,7 @@
 # Web Framework
-fastapi==0.109.0
+fastapi==0.109.1  # Updated from 0.109.0 to fix ReDoS vulnerability
 uvicorn[standard]==0.27.0
-python-multipart==0.0.6
+python-multipart==0.0.22  # Updated from 0.0.6 to fix multiple vulnerabilities
 
 # Streamlit Dashboard
 streamlit==1.31.0
@@ -14,10 +14,10 @@ pdfplumber==0.10.3
 spacy==3.7.2
 scikit-learn==1.4.0
 sentence-transformers==2.3.1
-nltk==3.8.1
+nltk==3.9  # Updated from 3.8.1 to fix unsafe deserialization vulnerability
 
 # LangChain and LLM (optional for AI feedback)
-langchain-core==0.1.16
+langchain-core==0.3.81  # Updated from 0.1.16 to fix template injection and serialization vulnerabilities
 langchain-openai==0.0.5
 openai==1.12.0
 
