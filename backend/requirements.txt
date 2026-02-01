@@ -9,7 +9,7 @@ PyPDF2==3.0.1
 pydantic==2.5.3
 
 # File handling
-python-multipart==0.0.6
+python-multipart==0.0.22
 
 # CORS support (included with FastAPI but listed for clarity)
 # CORS middleware is built into FastAPI
