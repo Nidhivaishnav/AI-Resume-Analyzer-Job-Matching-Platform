@@ -41,8 +41,8 @@ class PDFExtractionService:
             
             return full_text
         
-        except Exception as e:
-            raise Exception(f"Error extracting text from PDF: {str(e)}")
+        except Exception:
+            raise
     
     @staticmethod
     def validate_pdf_file(file_content: bytes) -> bool:

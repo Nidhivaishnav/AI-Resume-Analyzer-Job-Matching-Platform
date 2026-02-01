@@ -67,10 +67,15 @@ async def upload_resume(
             extracted_text_preview=text_preview
         )
     
+    except HTTPException:
+        # Re-raise HTTP exceptions as-is
+        raise
     except Exception as e:
+        # Log the error internally (in production, use proper logging)
+        print(f"Error processing resume: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing resume: {str(e)}"
+            detail="Error processing resume. Please ensure the file is a valid PDF."
         )
 
 
@@ -112,7 +117,9 @@ async def submit_job_description(job_data: JobDescriptionInput):
         )
     
     except Exception as e:
+        # Log the error internally (in production, use proper logging)
+        print(f"Error processing job description: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error processing job description: {str(e)}"
+            detail="Error processing job description. Please try again."
         )
