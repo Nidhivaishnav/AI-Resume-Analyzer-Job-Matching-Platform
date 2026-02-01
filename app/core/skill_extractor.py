@@ -5,6 +5,10 @@ Uses spaCy NLP for extracting skills and analyzing text
 import spacy
 from typing import List, Set
 import re
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class SkillExtractor:
@@ -45,7 +49,8 @@ class SkillExtractor:
         except OSError:
             # Model not installed, will use pattern matching only
             self.nlp = None
-            print("Warning: spaCy model not loaded. Using pattern matching only.")
+            logger.warning("spaCy model 'en_core_web_sm' not loaded. Using pattern matching only. "
+                          "Run 'python -m spacy download en_core_web_sm' to enable NLP features.")
     
     def extract_skills(self, text: str) -> List[str]:
         """Extract skills from text"""

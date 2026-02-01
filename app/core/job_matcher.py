@@ -7,6 +7,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 import numpy as np
 from typing import Dict, List, Tuple
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class JobMatcher:
@@ -22,8 +26,9 @@ class JobMatcher:
         # Initialize Sentence Transformer model (lightweight)
         try:
             self.sentence_model = SentenceTransformer('all-MiniLM-L6-v2')
+            logger.info("Sentence Transformer model loaded successfully")
         except Exception as e:
-            print(f"Warning: Could not load sentence transformer: {e}")
+            logger.warning(f"Could not load sentence transformer: {e}. Semantic matching will be disabled.")
             self.sentence_model = None
     
     def calculate_tfidf_similarity(
@@ -41,7 +46,7 @@ class JobMatcher:
             
             return float(similarity)
         except Exception as e:
-            print(f"Error in TF-IDF calculation: {e}")
+            logger.error(f"Error in TF-IDF calculation: {e}")
             return 0.0
     
     def calculate_semantic_similarity(
@@ -65,7 +70,7 @@ class JobMatcher:
             
             return float(similarity)
         except Exception as e:
-            print(f"Error in semantic similarity calculation: {e}")
+            logger.error(f"Error in semantic similarity calculation: {e}")
             return 0.0
     
     def match_resume_to_job(

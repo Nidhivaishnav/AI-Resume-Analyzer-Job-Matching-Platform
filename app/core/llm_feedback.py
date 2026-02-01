@@ -4,6 +4,10 @@ Uses LangChain with OpenAI to generate resume feedback and suggestions
 """
 from typing import Dict, List, Optional
 import os
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 try:
     from langchain_openai import ChatOpenAI
@@ -11,6 +15,11 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     LANGCHAIN_AVAILABLE = False
+    logger.warning("LangChain not available. LLM features will be disabled.")
+
+# Configuration constants
+MAX_RESUME_TEXT_LENGTH = 3000  # Limit for resume text to stay within token limits
+MAX_JOB_DESC_LENGTH = 2000     # Limit for job description to stay within token limits
 
 
 class FeedbackGenerator:
@@ -28,14 +37,15 @@ class FeedbackGenerator:
                     openai_api_key=self.api_key
                 )
                 self.llm_available = True
+                logger.info("LLM initialized successfully with OpenAI")
             except Exception as e:
-                print(f"Warning: Could not initialize LLM: {e}")
+                logger.warning(f"Could not initialize LLM: {e}")
                 self.llm_available = False
         else:
             if not LANGCHAIN_AVAILABLE:
-                print("Warning: LangChain not available. LLM features will be disabled.")
+                logger.warning("LangChain not available. LLM features will be disabled.")
             else:
-                print("Warning: No OpenAI API key provided. LLM features will be disabled.")
+                logger.info("No OpenAI API key provided. LLM features will be disabled.")
             self.llm_available = False
     
     def generate_resume_feedback(
@@ -55,10 +65,10 @@ class FeedbackGenerator:
             Analyze the following resume against the job description and provide constructive feedback.
             
             Resume:
-            {resume_text[:3000]}
+            {resume_text[:MAX_RESUME_TEXT_LENGTH]}
             
             Job Description:
-            {job_description[:2000]}
+            {job_description[:MAX_JOB_DESC_LENGTH]}
             
             Match Score: {match_score}%
             
@@ -76,7 +86,7 @@ class FeedbackGenerator:
             return response.content if hasattr(response, 'content') else str(response)
             
         except Exception as e:
-            print(f"Error generating LLM feedback: {e}")
+            logger.error(f"Error generating LLM feedback: {e}")
             return self._generate_basic_feedback(match_score)
     
     def suggest_missing_skills(
@@ -97,10 +107,10 @@ class FeedbackGenerator:
             {', '.join(missing_skills)}
             
             Job Description:
-            {job_description[:2000]}
+            {job_description[:MAX_JOB_DESC_LENGTH]}
             
             Current Resume:
-            {resume_text[:2000]}
+            {resume_text[:MAX_RESUME_TEXT_LENGTH]}
             
             Provide:
             1. Prioritization of which skills to learn first
@@ -116,7 +126,7 @@ class FeedbackGenerator:
             return response.content if hasattr(response, 'content') else str(response)
             
         except Exception as e:
-            print(f"Error generating skill suggestions: {e}")
+            logger.error(f"Error generating skill suggestions: {e}")
             return self._generate_basic_skill_suggestions(missing_skills)
     
     def _generate_basic_feedback(self, match_score: float) -> str:
