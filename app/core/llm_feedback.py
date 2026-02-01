@@ -2,11 +2,15 @@
 LLM Feedback Generator Module
 Uses LangChain with OpenAI to generate resume feedback and suggestions
 """
-from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
 from typing import Dict, List, Optional
 import os
+
+try:
+    from langchain_openai import ChatOpenAI
+    from langchain_core.prompts import PromptTemplate
+    LANGCHAIN_AVAILABLE = True
+except ImportError:
+    LANGCHAIN_AVAILABLE = False
 
 
 class FeedbackGenerator:
@@ -16,7 +20,7 @@ class FeedbackGenerator:
         """Initialize with OpenAI API key"""
         self.api_key = api_key or os.getenv("OPENAI_API_KEY")
         
-        if self.api_key:
+        if self.api_key and LANGCHAIN_AVAILABLE:
             try:
                 self.llm = ChatOpenAI(
                     temperature=0.7,
@@ -28,7 +32,10 @@ class FeedbackGenerator:
                 print(f"Warning: Could not initialize LLM: {e}")
                 self.llm_available = False
         else:
-            print("Warning: No OpenAI API key provided. LLM features will be disabled.")
+            if not LANGCHAIN_AVAILABLE:
+                print("Warning: LangChain not available. LLM features will be disabled.")
+            else:
+                print("Warning: No OpenAI API key provided. LLM features will be disabled.")
             self.llm_available = False
     
     def generate_resume_feedback(
@@ -42,16 +49,16 @@ class FeedbackGenerator:
             return self._generate_basic_feedback(match_score)
         
         try:
-            prompt_template = """
+            prompt_text = f"""
             You are an expert career advisor and resume consultant. 
             
             Analyze the following resume against the job description and provide constructive feedback.
             
             Resume:
-            {resume_text}
+            {resume_text[:3000]}
             
             Job Description:
-            {job_description}
+            {job_description[:2000]}
             
             Match Score: {match_score}%
             
@@ -65,20 +72,9 @@ class FeedbackGenerator:
             Keep the feedback professional, constructive, and actionable.
             """
             
-            prompt = PromptTemplate(
-                input_variables=["resume_text", "job_description", "match_score"],
-                template=prompt_template
-            )
+            response = self.llm.invoke(prompt_text)
+            return response.content if hasattr(response, 'content') else str(response)
             
-            chain = LLMChain(llm=self.llm, prompt=prompt)
-            
-            feedback = chain.run(
-                resume_text=resume_text[:3000],  # Limit text length
-                job_description=job_description[:2000],
-                match_score=match_score
-            )
-            
-            return feedback
         except Exception as e:
             print(f"Error generating LLM feedback: {e}")
             return self._generate_basic_feedback(match_score)
@@ -94,17 +90,17 @@ class FeedbackGenerator:
             return self._generate_basic_skill_suggestions(missing_skills)
         
         try:
-            prompt_template = """
+            prompt_text = f"""
             You are a career development advisor helping someone improve their skills.
             
             The candidate is missing these skills for their target job:
-            {missing_skills}
+            {', '.join(missing_skills)}
             
             Job Description:
-            {job_description}
+            {job_description[:2000]}
             
             Current Resume:
-            {resume_text}
+            {resume_text[:2000]}
             
             Provide:
             1. Prioritization of which skills to learn first
@@ -116,20 +112,9 @@ class FeedbackGenerator:
             Be specific and actionable.
             """
             
-            prompt = PromptTemplate(
-                input_variables=["missing_skills", "job_description", "resume_text"],
-                template=prompt_template
-            )
+            response = self.llm.invoke(prompt_text)
+            return response.content if hasattr(response, 'content') else str(response)
             
-            chain = LLMChain(llm=self.llm, prompt=prompt)
-            
-            suggestions = chain.run(
-                missing_skills=", ".join(missing_skills),
-                job_description=job_description[:2000],
-                resume_text=resume_text[:2000]
-            )
-            
-            return suggestions
         except Exception as e:
             print(f"Error generating skill suggestions: {e}")
             return self._generate_basic_skill_suggestions(missing_skills)
